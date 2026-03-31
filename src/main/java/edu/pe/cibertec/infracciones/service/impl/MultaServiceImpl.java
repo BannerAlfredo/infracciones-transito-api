@@ -35,7 +35,7 @@ public class MultaServiceImpl implements IMultaService {
         }
 
         if (nuevoInfractor.isBloqueado()) {
-            throw new RuntimeException("El infractor está bloqueado");
+            throw new InfractorBloqueadoException(nuevoInfractorId);
         }
 
         boolean tieneVehiculo = infractorRepository

@@ -1,5 +1,6 @@
 package edu.pe.cibertec.infracciones.service.impl;
 
+import edu.pe.cibertec.infracciones.exception.InfractorBloqueadoException;
 import edu.pe.cibertec.infracciones.model.EstadoMulta;
 import edu.pe.cibertec.infracciones.model.Infractor;
 import edu.pe.cibertec.infracciones.model.Multa;
@@ -15,10 +16,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
-public class MultaServiceImplTest {
+class MultaServiceImplTest {
+
     @Mock
     private MultaRepository multaRepository;
 
@@ -40,7 +46,6 @@ public class MultaServiceImplTest {
 
         Vehiculo vehiculo = new Vehiculo();
         vehiculo.setId(1L);
-
         multa.setVehiculo(vehiculo);
 
         Infractor infractorB = new Infractor();
@@ -59,5 +64,36 @@ public class MultaServiceImplTest {
         service.transferirMulta(multaId, infractorBId);
 
         assertEquals(infractorB, multa.getInfractor());
+    }
+
+    @Test
+    void transferirMulta_infractorBloqueado_lanzaException_yNoGuarda() {
+
+        Long multaId = 1L;
+        Long infractorBId = 2L;
+
+        Multa multa = new Multa();
+        multa.setId(multaId);
+        multa.setEstado(EstadoMulta.PENDIENTE);
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setId(1L);
+        multa.setVehiculo(vehiculo);
+
+        Infractor infractorB = new Infractor();
+        infractorB.setId(infractorBId);
+        infractorB.setBloqueado(true);
+
+        when(multaRepository.findById(multaId))
+                .thenReturn(Optional.of(multa));
+
+        when(infractorRepository.findById(infractorBId))
+                .thenReturn(Optional.of(infractorB));
+
+        assertThrows(InfractorBloqueadoException.class, () -> {
+            service.transferirMulta(multaId, infractorBId);
+        });
+
+        verify(multaRepository, never()).save(any());
     }
 }
