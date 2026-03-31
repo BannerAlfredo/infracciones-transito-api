@@ -25,6 +25,27 @@ public class InfractorServiceImpl implements IInfractorService {
     private final MultaRepository multaRepository;
 
     @Override
+    public void desasignarVehiculo(Long infractorId, Long vehiculoId) {
+
+        Infractor infractor = infractorRepository.findById(infractorId)
+                .orElseThrow(() -> new InfractorNotFoundException(infractorId));
+
+        // 🔥 Validar multas pendientes
+        boolean tieneMultasPendientes = multaRepository
+                .existsByVehiculo_IdAndEstado(vehiculoId, EstadoMulta.PENDIENTE);
+
+        if (tieneMultasPendientes) {
+            throw new RuntimeException("No se puede desasignar vehículo con multas pendientes");
+        }
+
+        // 🔥 Remover vehículo
+        infractor.getVehiculos()
+                .removeIf(v -> v.getId().equals(vehiculoId));
+
+        infractorRepository.save(infractor);
+    }
+
+    @Override
     public Double calcularDeuda(Long infractorId) {
 
         Infractor infractor = infractorRepository.findById(infractorId)

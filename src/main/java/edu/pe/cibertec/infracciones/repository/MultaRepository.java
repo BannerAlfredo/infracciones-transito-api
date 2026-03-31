@@ -12,4 +12,5 @@ public interface MultaRepository extends JpaRepository<Multa, Long> {
     List<Multa> findByVehiculo_IdAndEstado(Long vehiculoId, EstadoMulta estado);
     boolean existsByCodigo(String codigo);
     List<Multa> findByInfractorId(Long infractorId);
+    boolean existsByVehiculo_IdAndEstado(Long vehiculoId, EstadoMulta estado);
 }

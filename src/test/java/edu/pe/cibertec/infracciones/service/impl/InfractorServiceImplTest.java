@@ -1,6 +1,8 @@
 package edu.pe.cibertec.infracciones.service.impl;
+import edu.pe.cibertec.infracciones.model.EstadoMulta;
 import edu.pe.cibertec.infracciones.model.Infractor;
 import edu.pe.cibertec.infracciones.model.Multa;
+import edu.pe.cibertec.infracciones.model.Vehiculo;
 import edu.pe.cibertec.infracciones.repository.InfractorRepository;
 import edu.pe.cibertec.infracciones.repository.MultaRepository;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,5 +54,30 @@ public class InfractorServiceImplTest {
         double resultado = service.calcularDeuda(infractorId);
 
         assertEquals(545.0, resultado);
+    }
+
+    @Test
+    void desasignarVehiculo_ok() {
+
+        Long infractorId = 1L;
+        Long vehiculoId = 1L;
+
+        Infractor infractor = new Infractor();
+        infractor.setId(infractorId);
+
+        Vehiculo vehiculo = new Vehiculo();
+        vehiculo.setId(vehiculoId);
+
+        infractor.setVehiculos(new ArrayList<>(List.of(vehiculo)));
+
+        when(infractorRepository.findById(infractorId))
+                .thenReturn(Optional.of(infractor));
+
+        when(multaRepository.existsByVehiculo_IdAndEstado(vehiculoId, EstadoMulta.PENDIENTE))
+                .thenReturn(false);
+
+        service.desasignarVehiculo(infractorId, vehiculoId);
+
+        assertEquals(0, infractor.getVehiculos().size());
     }
 }
